@@ -1,7 +1,11 @@
 package services
 
 import (
+	"errors"
+	
 	"image-processing-service/internal/models"
+	"image-processing-service/internal/utils"
+	"image-processing-service/repositories"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,15 +16,18 @@ import (
 type AuthService interface{
 	GenerateToken(user models.User)(string,error)
 	ValidateToken(token string)(*jwt.Token,error)
+	Login(email,password string)(string,error)
 }
 
 type authService struct{
-	Secret string
+	repo repositories.Repo
+	SecreteKey string
 }
 
-func NewAuthService(secret string)AuthService{
+func NewAuthService(repo repositories.Repo, Secret string) AuthService{
 	return &authService{
-		Secret: secret,
+		repo:repo,
+		SecreteKey: Secret,
 	}
 }
 
@@ -34,7 +41,7 @@ func(s *authService)GenerateToken(user models.User)(string,error){
 		"exp":time.Now().Add(24*time.Hour).Unix(),
 	}
 	token:=jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
-	tokenString,err:=token.SignedString([]byte(s.Secret))
+	tokenString,err:=token.SignedString([]byte(s.SecreteKey))
 	if err!=nil{
 		return "",err
 	}
@@ -47,10 +54,42 @@ func(s *authService) ValidateToken(tokenString string)(*jwt.Token,error){
 		if _,ok:=t.Method.(*jwt.SigningMethodHMAC);!ok{
 			return nil,jwt.ErrTokenSignatureInvalid
 		}
-		return []byte(s.Secret),nil
+		return []byte(s.SecreteKey),nil
 	})
 	if err!=nil{
 		return nil,err
 	}
 	return token,nil
+}
+
+
+func(s *authService)Login(email, password string)(string,error){
+	user,err:=s.repo.FindByEmail(email)
+	if err!=nil{
+		return "",err
+	}
+	if !utils.CheckPassword(user.Password,password){
+		return "",errors.New("Inalid credentials")
+	}
+
+	token,err:=s.GenerateToken(*user)
+	if err!=nil{
+		return "",err
+	}
+	return token,nil
+}
+
+
+func (s *authService) Signup(user models.User)(*models.User,error){
+	 hashed,err:=utils.HashPassword(user.Password)
+	 if err!=nil{
+		return nil,errors.New("Could not hash password")
+	 }
+	 user.Password=hashed
+
+	 created,err:=s.repo.Signup(user)
+	 if err!=nil{
+		return nil,errors.New("could not signup user")
+	 }
+	 return created,nil
 }
