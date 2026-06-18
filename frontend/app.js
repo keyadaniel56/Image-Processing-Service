@@ -4,8 +4,8 @@ let authToken = localStorage.getItem('token');
 let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
 let selectedFile = null;
 let selectedImageId = null;
-let uploadedImages = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
-let processedImages = JSON.parse(localStorage.getItem('processedImages') || '[]');
+let uploadedImages = [];
+let processedImages = [];
 
 // DOM Elements
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,8 +17,7 @@ function initApp() {
     if (authToken && currentUser) {
         showAuthenticatedUI();
         showPage('dashboard');
-        loadGalleryImages();
-        loadProcessImages();
+        loadFromServer();
     } else {
         showPage('home');
     }
@@ -118,8 +117,7 @@ async function handleLogin(event) {
         showToast('Login successful! Welcome back.', 'success');
         showAuthenticatedUI();
         showPage('dashboard');
-        loadGalleryImages();
-        loadProcessImages();
+        loadFromServer();
         
         document.getElementById('loginForm').reset();
     } catch (error) {
@@ -180,8 +178,12 @@ function handleLogout() {
     currentUser = null;
     selectedFile = null;
     selectedImageId = null;
+    uploadedImages = [];
+    processedImages = [];
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('uploadedImages');
+    localStorage.removeItem('processedImages');
     
     showUnauthenticatedUI();
     showPage('home');
@@ -195,6 +197,27 @@ function switchDashboardTab(tab, element) {
     
     document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
     if (element) element.classList.add('active');
+    
+    if (tab === 'gallery') loadFromServer();
+    if (tab === 'process') loadFromServer();
+}
+
+// Load data from server
+async function loadFromServer() {
+    if (!authToken) return;
+    try {
+        const response = await fetch(`${API_BASE}/images`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            uploadedImages = data.images || [];
+            loadProcessImages();
+            loadGalleryImages();
+        }
+    } catch (err) {
+        console.error('Failed to load images:', err);
+    }
 }
 
 // File Upload
@@ -256,22 +279,7 @@ async function uploadImage() {
         statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> Image uploaded successfully!`;
         statusDiv.style.display = 'block';
 
-        // Add to local images
-        const imageEntry = {
-            id: data.id || Date.now().toString(),
-            name: selectedFile.name,
-            url: data.url || document.getElementById('imagePreview').src,
-            size: selectedFile.size,
-            type: selectedFile.type,
-            uploadedAt: new Date().toISOString()
-        };
-        
-        uploadedImages.unshift(imageEntry);
-        localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
-        
-        loadProcessImages();
-        loadGalleryImages();
-
+        await loadFromServer();
         setTimeout(resetUpload, 2000);
         showToast('Image uploaded successfully!', 'success');
     } catch (error) {
@@ -289,26 +297,25 @@ async function uploadImage() {
 // Process Images
 function loadProcessImages() {
     const list = document.getElementById('imageList');
-    const images = getImages();
     
-    if (images.length === 0) {
+    if (uploadedImages.length === 0) {
         list.innerHTML = '<p class="text-muted">No images uploaded yet</p>';
         return;
     }
 
-    list.innerHTML = images.map(img => `
+    list.innerHTML = uploadedImages.map(img => `
         <div class="image-item" onclick="selectImage('${img.id}')" data-id="${img.id}">
-            <img src="${img.url}" alt="${img.name}">
+            <img src="${API_BASE.replace('/api', '')}${img.url}" alt="${img.file_name}">
             <div class="image-item-info">
-                <div class="image-item-name">${img.name}</div>
-                <div class="image-item-date">${formatDate(img.uploadedAt || img.processedAt)}</div>
+                <div class="image-item-name">${img.file_name}</div>
+                <div class="image-item-date">${formatDate(img.created_at)}</div>
             </div>
         </div>
     `).join('');
 }
 
-function getImages() {
-    return [...uploadedImages, ...processedImages];
+function getAllImages() {
+    return uploadedImages;
 }
 
 function selectImage(id) {
@@ -319,12 +326,12 @@ function selectImage(id) {
         item.classList.toggle('active', item.dataset.id === id);
     });
 
-    const images = getImages();
-    const image = images.find(img => img.id === id);
+    const image = uploadedImages.find(img => img.id === id);
     
     if (image) {
         const preview = document.getElementById('editorPreview');
-        preview.innerHTML = `<img src="${image.url}" alt="${image.name}" id="currentEditImage">`;
+        const imgUrl = `${API_BASE.replace('/api', '')}${image.url}`;
+        preview.innerHTML = `<img src="${imgUrl}" alt="${image.file_name}" id="currentEditImage">`;
         document.getElementById('editorControls').style.display = 'block';
     }
 }
@@ -409,8 +416,6 @@ async function applyFilter(filterType) {
         const newUrl = canvas.toDataURL('image/png');
         document.getElementById('currentEditImage').src = newUrl;
 
-        // Save processed image
-        saveProcessedImage(newUrl, `${filterType}_${Date.now()}.png`);
         showToast(`${filterType.charAt(0).toUpperCase() + filterType.slice(1)} filter applied!`, 'success');
     };
 }
@@ -476,7 +481,6 @@ function rotateImage(direction) {
 
         const newUrl = canvas.toDataURL('image/png');
         document.getElementById('currentEditImage').src = newUrl;
-        saveProcessedImage(newUrl, `rotated_${direction}_${Date.now()}.png`);
         showToast(`Rotated ${direction}!`, 'success');
     };
 }
@@ -508,7 +512,6 @@ function flipImage(direction) {
 
         const newUrl = canvas.toDataURL('image/png');
         document.getElementById('currentEditImage').src = newUrl;
-        saveProcessedImage(newUrl, `flipped_${direction}_${Date.now()}.png`);
         showToast(`Flipped ${direction}!`, 'success');
     };
 }
@@ -561,7 +564,6 @@ function cropImage(ratio) {
 
         const newUrl = canvas.toDataURL('image/png');
         document.getElementById('currentEditImage').src = newUrl;
-        saveProcessedImage(newUrl, `cropped_${ratio.replace(':', '_')}_${Date.now()}.png`);
         showToast(`Cropped to ${ratio}!`, 'success');
     };
 }
@@ -589,42 +591,26 @@ function convertFormat() {
 
         const newUrl = canvas.toDataURL(mimeType, 0.9);
         document.getElementById('currentEditImage').src = newUrl;
-        saveProcessedImage(newUrl, `converted_${format}_${Date.now()}.${format}`);
         showToast(`Converted to ${format.toUpperCase()}!`, 'success');
     };
-}
-
-function saveProcessedImage(url, name) {
-    const entry = {
-        id: `processed_${Date.now()}`,
-        name: name,
-        url: url,
-        processedAt: new Date().toISOString()
-    };
-    
-    processedImages.unshift(entry);
-    localStorage.setItem('processedImages', JSON.stringify(processedImages));
-    loadGalleryImages();
-    loadProcessImages();
 }
 
 // Gallery
 function loadGalleryImages() {
     const grid = document.getElementById('galleryGrid');
-    const allImages = [...uploadedImages, ...processedImages];
     
-    if (allImages.length === 0) {
-        grid.innerHTML = '<p class="text-muted">No images processed yet</p>';
+    if (uploadedImages.length === 0) {
+        grid.innerHTML = '<p class="text-muted">No images uploaded yet</p>';
         return;
     }
 
-    grid.innerHTML = allImages.map(img => `
+    grid.innerHTML = uploadedImages.map(img => `
         <div class="gallery-item">
-            <img src="${img.url}" alt="${img.name}" onclick="previewImage('${img.id}')">
+            <img src="${API_BASE.replace('/api', '')}${img.url}" alt="${img.file_name}" onclick="previewImage('${img.id}')">
             <div class="gallery-item-info">
-                <div class="gallery-item-name" title="${img.name}">${img.name}</div>
+                <div class="gallery-item-name" title="${img.file_name}">${img.file_name}</div>
                 <div class="gallery-item-meta">
-                    <span class="gallery-item-size">${formatFileSize(img.size)}</span>
+                    <span class="gallery-item-size">${formatFileSize(img.file_size)}</span>
                     <div class="gallery-item-actions">
                         <button class="btn btn-sm btn-primary" onclick="downloadImage('${img.id}')">
                             <i class="fas fa-download"></i>
@@ -640,13 +626,12 @@ function loadGalleryImages() {
 }
 
 function downloadImage(id) {
-    const images = getImages();
-    const image = images.find(img => img.id === id);
+    const image = uploadedImages.find(img => img.id === id);
     
     if (image) {
         const a = document.createElement('a');
-        a.href = image.url;
-        a.download = image.name;
+        a.href = `${API_BASE.replace('/api', '')}${image.url}`;
+        a.download = image.file_name;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -654,26 +639,34 @@ function downloadImage(id) {
     }
 }
 
-function deleteImage(id) {
+async function deleteImage(id) {
     if (!confirm('Are you sure you want to delete this image?')) return;
     
-    uploadedImages = uploadedImages.filter(img => img.id !== id);
-    processedImages = processedImages.filter(img => img.id !== id);
-    
-    localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
-    localStorage.setItem('processedImages', JSON.stringify(processedImages));
-    
-    loadGalleryImages();
-    loadProcessImages();
-    showToast('Image deleted.', 'success');
+    try {
+        const response = await fetch(`${API_BASE}/images/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to delete');
+        }
+
+        await loadFromServer();
+        showToast('Image deleted.', 'success');
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
 }
 
 function previewImage(id) {
-    const images = getImages();
-    const image = images.find(img => img.id === id);
+    const image = uploadedImages.find(img => img.id === id);
     
     if (image) {
-        window.open(image.url, '_blank');
+        window.open(`${API_BASE.replace('/api', '')}${image.url}`, '_blank');
     }
 }
 
