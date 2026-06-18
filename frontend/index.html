@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing Service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-image"></i>
+                <span>ImagePro</span>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="#home" class="active"><i class="fas fa-home"></i> Home</a>
+                <a href="#features"><i class="fas fa-magic"></i> Features</a>
+            </div>
+            <div class="nav-auth" id="navAuth">
+                <button class="btn btn-outline" onclick="showPage('login')">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="btn btn-primary" onclick="showPage('signup')">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+            </div>
+            <div class="nav-user" id="navUser" style="display:none;">
+                <span id="userDisplayName"><i class="fas fa-user-circle"></i> User</span>
+                <button class="btn btn-danger btn-sm" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <section class="page active" id="page-home">
+        <div class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-bolt"></i> AI-Powered
+                </div>
+                <h1>Transform Your Images<br><span class="gradient-text">With Ease</span></h1>
+                <p>Professional image processing at your fingertips. Resize, filter, convert, and enhance your images with our powerful suite of tools.</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-lg" onclick="showPage('signup')">
+                        <i class="fas fa-rocket"></i> Get Started Free
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="showPage('login')">
+                        <i class="fas fa-play"></i> Watch Demo
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-card card-1">
+                    <i class="fas fa-arrows-alt"></i>
+                    <span>Resize</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-palette"></i>
+                    <span>Filters</span>
+                </div>
+                <div class="floating-card card-3">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Convert</span>
+                </div>
+                <div class="floating-card card-4">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>Enhance</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section" id="features">
+            <h2>Everything You Need <span class="gradient-text">To Edit Images</span></h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-expand"></i>
+                    </div>
+                    <h3>Resize</h3>
+                    <p>Change dimensions while maintaining aspect ratio with smart cropping options.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3>Filters</h3>
+                    <p>Apply professional filters including grayscale, sepia, blur, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <h3>Format Convert</h3>
+                    <p>Convert between PNG, JPEG, WebP, and other popular image formats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                    <h3>Enhance</h3>
+                    <p>Auto-enhance brightness, contrast, and sharpness with one click.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-crop"></i>
+                    </div>
+                    <h3>Crop</h3>
+                    <p>Precise cropping with preset aspect ratios for social media posts.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rotate"></i>
+                    </div>
+                    <h3>Rotate & Flip</h3>
+                    <p>Rotate by any angle, flip horizontally or vertically.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Page -->
+    <section class="page auth-page" id="page-login">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <i class="fas fa-image auth-logo"></i>
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to continue to ImagePro</p>
+                </div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" onclick="showPage('signup')">Sign Up</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Signup Page -->
+    <section class="page auth-page" id="page-signup">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <i class="fas fa-image auth-logo"></i>
+                    <h2>Create Account</h2>
+                    <p>Join ImagePro today</p>
+                </div>
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="signupUsername" placeholder="Choose a username" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="signupPassword" placeholder="Create a password" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Confirm Password</label>
+                        <input type="password" id="signupConfirm" placeholder="Confirm your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="signupBtn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" onclick="showPage('login')">Sign In</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Page -->
+    <section class="page" id="page-dashboard">
+        <div class="dashboard">
+            <div class="sidebar">
+                <div class="sidebar-brand">
+                    <i class="fas fa-image"></i>
+                    <span>ImagePro</span>
+                </div>
+                <div class="sidebar-user">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div>
+                        <p class="user-name" id="sidebarUserName">User</p>
+                        <p class="user-email" id="sidebarUserEmail">user@example.com</p>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-link active" onclick="switchDashboardTab('upload', this)">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="switchDashboardTab('process', this)">
+                        <i class="fas fa-wrench"></i> Process
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="switchDashboardTab('gallery', this)">
+                        <i class="fas fa-images"></i> Gallery
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <a href="#" class="sidebar-link" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- Upload Tab -->
+                <div class="dashboard-tab active" id="tab-upload">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-cloud-upload-alt"></i> Upload Images</h2>
+                        <p>Drag & drop or click to upload images for processing</p>
+                    </div>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3>Drop images here</h3>
+                        <p>or <span class="upload-link" onclick="document.getElementById('fileInput').click()">browse files</span></p>
+                        <p class="upload-hint">Supports: PNG, JPG, JPEG, WebP</p>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview" style="display:none;">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-file-image"></i> <span id="fileName">image.png</span></h3>
+                            <span class="file-size" id="fileSize">0 KB</span>
+                        </div>
+                        <img id="imagePreview" src="" alt="Preview">
+                        <div class="preview-actions">
+                            <button class="btn btn-primary" onclick="uploadImage()" id="uploadBtn">
+                                <i class="fas fa-upload"></i> Upload
+                            </button>
+                            <button class="btn btn-outline" onclick="resetUpload()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+                    <div id="uploadStatus" class="status-message" style="display:none;"></div>
+                </div>
+
+                <!-- Process Tab -->
+                <div class="dashboard-tab" id="tab-process">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-wrench"></i> Process Images</h2>
+                        <p>Select an image and apply transformations</p>
+                    </div>
+                    <div class="process-layout">
+                        <div class="process-gallery" id="processGallery">
+                            <h3><i class="fas fa-images"></i> Your Images</h3>
+                            <div id="imageList" class="image-list">
+                                <p class="text-muted">No images uploaded yet</p>
+                            </div>
+                        </div>
+                        <div class="process-editor">
+                            <div class="editor-preview" id="editorPreview">
+                                <div class="no-selection">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    <p>Select an image to edit</p>
+                                </div>
+                            </div>
+                            <div class="editor-controls" id="editorControls" style="display:none;">
+                                <div class="control-group">
+                                    <h4><i class="fas fa-expand"></i> Resize</h4>
+                                    <div class="control-row">
+                                        <div class="control-input">
+                                            <label>Width (px)</label>
+                                            <input type="number" id="resizeWidth" placeholder="800">
+                                        </div>
+                                        <div class="control-input">
+                                            <label>Height (px)</label>
+                                            <input type="number" id="resizeHeight" placeholder="600">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <h4><i class="fas fa-palette"></i> Filters</h4>
+                                    <div class="filter-buttons">
+                                        <button class="filter-btn" onclick="applyFilter('grayscale')">
+                                            <i class="fas fa-adjust"></i> Grayscale
+                                        </button>
+                                        <button class="filter-btn" onclick="applyFilter('sepia')">
+                                            <i class="fas fa-mug-hot"></i> Sepia
+                                        </button>
+                                        <button class="filter-btn" onclick="applyFilter('blur')">
+                                            <i class="fas fa-circle"></i> Blur
+                                        </button>
+                                        <button class="filter-btn" onclick="applyFilter('brightness')">
+                                            <i class="fas fa-sun"></i> Brightness
+                                        </button>
+                                        <button class="filter-btn" onclick="applyFilter('contrast')">
+                                            <i class="fas fa-circle-half-stroke"></i> Contrast
+                                        </button>
+                                        <button class="filter-btn" onclick="applyFilter('sharpen')">
+                                            <i class="fas fa-bolt"></i> Sharpen
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <h4><i class="fas fa-exchange-alt"></i> Format</h4>
+                                    <div class="control-row">
+                                        <select id="formatSelect" class="form-select">
+                                            <option value="png">PNG</option>
+                                            <option value="jpeg">JPEG</option>
+                                            <option value="webp">WebP</option>
+                                        </select>
+                                        <button class="btn btn-primary" onclick="convertFormat()">
+                                            <i class="fas fa-exchange-alt"></i> Convert
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <h4><i class="fas fa-rotate"></i> Rotate & Flip</h4>
+                                    <div class="filter-buttons">
+                                        <button class="filter-btn" onclick="rotateImage('left')">
+                                            <i class="fas fa-undo"></i> Left
+                                        </button>
+                                        <button class="filter-btn" onclick="rotateImage('right')">
+                                            <i class="fas fa-redo"></i> Right
+                                        </button>
+                                        <button class="filter-btn" onclick="flipImage('horizontal')">
+                                            <i class="fas fa-arrows-alt-h"></i> Flip H
+                                        </button>
+                                        <button class="filter-btn" onclick="flipImage('vertical')">
+                                            <i class="fas fa-arrows-alt-v"></i> Flip V
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <h4><i class="fas fa-crop"></i> Crop</h4>
+                                    <div class="filter-buttons">
+                                        <button class="filter-btn" onclick="cropImage('square')">
+                                            <i class="fas fa-square"></i> Square
+                                        </button>
+                                        <button class="filter-btn" onclick="cropImage('16:9')">
+                                            <i class="fas fa-film"></i> 16:9
+                                        </button>
+                                        <button class="filter-btn" onclick="cropImage('4:3')">
+                                            <i class="fas fa-rectangle-ad"></i> 4:3
+                                        </button>
+                                        <button class="filter-btn" onclick="cropImage('1:1')">
+                                            <i class="fas fa-square-full"></i> 1:1
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gallery Tab -->
+                <div class="dashboard-tab" id="tab-gallery">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-images"></i> Gallery</h2>
+                        <p>View and download your processed images</p>
+                    </div>
+                    <div class="gallery-grid" id="galleryGrid">
+                        <p class="text-muted">No images processed yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
